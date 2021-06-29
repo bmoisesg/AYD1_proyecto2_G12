@@ -37,7 +37,7 @@ def insert():
     cursor.execute(''' INSERT INTO usuario(nombre,apellido,dpi,email,contrasena,direccion) VALUES(%s,%s,%s,%s,%s,%s) ''' , [nombre,apellido,dpi,email,contrasena,direccion])
     cursor.connection.commit()
     cursor.close()
-    return 'usuario ingresado'
+    return Response('usuario ingresado', status=200,mimetype= 'application/json')
 
 @app.route('/carrito', methods=['DELETE'])
 def eliminarCarrito():
@@ -47,7 +47,7 @@ def eliminarCarrito():
     cursor.execute(''' delete from carrito where usuario_idusuario = %s ''' , [idusuario])
     cursor.connection.commit()
     cursor.close()
-    return 'carrito limpio'
+    return Response('carrito limpio' , status=200,mimetype= 'application/json')
 
 @app.route('/carrito', methods=['POST'])
 def getcarrito():
@@ -58,21 +58,21 @@ def getcarrito():
     rows = cursor.fetchall()
     cursor.connection.commit()
     cursor.close()
-    return jsonify(rows)
+    return Response(jsonify(rows) , status=200,mimetype= 'application/json')
 
 @app.route('/usuario')
 def users():
     cur = mysql.connection.cursor()
     cur.execute('''SELECT * FROM usuario''')
     rows = cur.fetchall()
-    return jsonify(rows)
+    return Response(jsonify(rows) , status=200,mimetype= 'application/json')
 
 @app.route('/numpageproducto')
 def getnumpage():
     cur = mysql.connection.cursor()
     cur.execute('''select (count(*) div 10)+1  from producto''')
     rows = cur.fetchall()
-    return jsonify(rows[0])
+    return Response(jsonify(rows[0]) , status=200,mimetype= 'application/json')
 
 @app.route('/listaproductoGeneral',methods=['POST'])
 def getproductos():
@@ -82,7 +82,7 @@ def getproductos():
     bandera= 10* (int(num) -1)
     cur.execute("select * from producto limit "+str(bandera)+" , 10 ")
     rows = cur.fetchall()
-    return jsonify(rows)
+    return Response(jsonify(rows) , status=200,mimetype= 'application/json')
 
 @app.route('/numpageproductocategoria', methods=['POST'])
 def getnumpage2():
@@ -91,7 +91,7 @@ def getnumpage2():
     cur = mysql.connection.cursor()
     cur.execute('''select (count(*) div 10)+1  from producto where categoria_idcategoria= %s ''', str(idcategoria))
     rows = cur.fetchall()
-    return jsonify(rows[0])
+    return Response(jsonify(rows[0]) , status=200,mimetype= 'application/json')
 
 @app.route('/listaproductoGeneralcategoria',methods=['POST'])
 def getproductos2():
@@ -102,7 +102,7 @@ def getproductos2():
     limit1= 10*(int(num)-1)
     cur.execute("select * from producto where categoria_idcategoria = "+str(idcategoria)+" limit "+ str(limit1)+", 10 ")
     rows = cur.fetchall()
-    return jsonify(rows)
+    return Response(jsonify(rows) , status=200,mimetype= 'application/json')
 
 @app.route('/detalleFactura',methods=['POST'])
 def setdetalleFactura():
@@ -124,10 +124,8 @@ def setdetalleFactura():
     # 3. eliminar todos los productos que tenia en el carrito
     cur.execute(''' delete from carrito where usuario_idusuario = %s ''' , [idusuario])
     cur.connection.commit()
-
-
     cur.close()
-    return jsonify(rows)
+    return Response('{"msg":"Realizado con exito"}', status=200,mimetype= 'application/json')
 
 # Insertar un producto
 @app.route('/producto/nuevo', methods=['POST'])
