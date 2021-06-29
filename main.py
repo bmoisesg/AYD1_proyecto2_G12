@@ -56,7 +56,7 @@ def getcarrito():
     contenido = request.json
     idusuario = contenido['idusuario']
     cursor = mysql.connection.cursor()
-    cursor.execute(''' select producto_idproducto as idproducto from carrito where usuario_idusuario = %s ''' , [idusuario])
+    cursor.execute(''' select producto_idproducto as idproducto , cantidad from carrito where usuario_idusuario = %s ''' , [idusuario])
     rows = cursor.fetchall()
     cursor.connection.commit()
     cursor.close()
@@ -107,6 +107,31 @@ def getproductos2():
     limit1= 10*(int(num)-1)
     cur.execute("select * from producto where categoria_idcategoria = "+str(idcategoria)+" limit "+ str(limit1)+", 10 ")
     rows = cur.fetchall()
+    return jsonify(rows)
+
+@app.route('/detalleFactura',methods=['POST'])
+def setdetalleFactura():
+    contenido = request.json
+    idusuario = contenido['idusuario']
+    idfactura = contenido['idfactura']
+    # 1. traer los productos del carrito del usuario
+    cur = mysql.connection.cursor()
+    cur.execute(''' select producto_idproducto, cantidad from carrito where usuario_idusuario = %s ''' , [idusuario])
+    rows = cur.fetchall()
+    print(rows)
+    # 2. iterar cada uno de los elementos y pasarlos a detallefactura
+    for element in rows:
+        print(element[0]) # producto
+        print(element[1]) # cantidad
+        cur.execute(''' insert into detalleFactura (factura_idfactura, producto_idproducto, cantidad) values (%s,%s,%s) ''' , [str(idfactura),str(element[0]),str(element[1])])
+        cur.execute(''' update producto set stock = stock - %s where idproducto = %s ''', [str(element[1]),str(element[0])])
+        cur.connection.commit()
+    # 3. eliminar todos los productos que tenia en el carrito
+    cur.execute(''' delete from carrito where usuario_idusuario = %s ''' , [idusuario])
+    cur.connection.commit()
+
+
+    cur.close()
     return jsonify(rows)
 
 # Insertar un producto
