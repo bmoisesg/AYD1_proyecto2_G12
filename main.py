@@ -39,7 +39,6 @@ def insert():
     cursor.close()
     return 'usuario ingresado'
 
-
 @app.route('/carrito', methods=['DELETE'])
 def eliminarCarrito():
     contenido = request.json
@@ -49,7 +48,6 @@ def eliminarCarrito():
     cursor.connection.commit()
     cursor.close()
     return 'carrito limpio'
-
 
 @app.route('/carrito', methods=['POST'])
 def getcarrito():
@@ -61,7 +59,6 @@ def getcarrito():
     cursor.connection.commit()
     cursor.close()
     return jsonify(rows)
-
 
 @app.route('/usuario')
 def users():
@@ -76,7 +73,6 @@ def getnumpage():
     cur.execute('''select (count(*) div 10)+1  from producto''')
     rows = cur.fetchall()
     return jsonify(rows[0])
-
 
 @app.route('/listaproductoGeneral',methods=['POST'])
 def getproductos():
@@ -96,7 +92,6 @@ def getnumpage2():
     cur.execute('''select (count(*) div 10)+1  from producto where categoria_idcategoria= %s ''', str(idcategoria))
     rows = cur.fetchall()
     return jsonify(rows[0])
-
 
 @app.route('/listaproductoGeneralcategoria',methods=['POST'])
 def getproductos2():
@@ -259,6 +254,63 @@ def userLogin():
     except Exception as e:
         print('[ERROR]:',e)
         return Response('{"msg":"Usuario no autorizado."}', status=401, mimetype='application/json')
+    finally:
+        cursor.close()
+
+# Ingresar los datos de facturación en la entidad
+@app.route('/factura', methods=['POST'])
+def setBillInformation():
+    try:
+        cursor = mysql.connection.cursor()
+        nit = request.json['nit']
+        fecha = request.json['fecha']
+        telefono = request.json['telefono']
+        usuario = request.json['id_usuario']
+        total = request.json['total']
+
+        # Query que inserta los datos de facturación 
+        query = '''INSERT INTO factura (nit, fecha, telefono, usuario_idusuario, total)
+                   VALUES (%s,%s,%s,%s,%s)'''
+        values = (nit,fecha,telefono,int(usuario),float(total));
+
+        cursor.execute(query, values)
+        cursor.connection.commit()
+
+        # Query que obtiene la última factura insertada.
+        query = '''SELECT LAST_INSERT_ID()'''
+        cursor.execute(query)
+        result = cursor.fetchall()
+
+        resjson = json.dumps(result[0], cls = Encoder)
+        print('ID factura:',resjson)
+        return Response(resjson, status=200, mimetype='application/json')
+    except Exception as e:
+        print('[ERROR]:',e)
+        return Response('{"msg":"Error al insertar datos de facturación."}', status=400, mimetype='application/json')
+    finally:
+        cursor.close()
+
+# Ingresar los datos de facturación en la entidad
+@app.route('/factura/detallePago', methods=['POST'])
+def setPaymentDetail():
+    try:
+        cursor = mysql.connection.cursor()
+        metodo = request.json['metodo_pago']
+        factura = request.json['id_factura']
+        numero = request.json['numero_tarjeta']
+
+        # Query que inserta los datos de facturación 
+        query = '''INSERT INTO detallemetodoPago (metodoPago_idtarjeta, factura_idfactura, numero)
+                   VALUES (%s,%s,%s)'''
+        values = (int(metodo), int(factura), numero);
+
+        cursor.execute(query, values)
+        cursor.connection.commit()
+
+        return Response('{"msg":"Información de pago almacenada."}', status=200, mimetype='application/json')
+    except Exception as e:
+        print('[ERROR]:',e)
+        return Response('{"msg":"Error al insertar información de pago."}', status=400, mimetype='application/json')
     finally:
         cursor.close()
 
