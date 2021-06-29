@@ -74,6 +74,13 @@ def getnumpage():
     rows = cur.fetchall()
     return Response(jsonify(rows[0]) , status=200,mimetype= 'application/json')
 
+@app.route('/numpageproducto')
+def gettodosProductos():
+    cur = mysql.connection.cursor()
+    cur.execute('''select *  from producto''')
+    rows = cur.fetchall()
+    return Response(jsonify(rows) , status=200,mimetype= 'application/json')
+
 @app.route('/listaproductoGeneral',methods=['POST'])
 def getproductos():
     contenido = request.json
