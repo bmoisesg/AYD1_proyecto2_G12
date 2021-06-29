@@ -1,3 +1,4 @@
+from typing import cast
 from flask import Flask, json, request, jsonify
 from flask.wrappers import Response
 from flask_mysqldb import MySQL
@@ -23,32 +24,53 @@ class Encoder(json.JSONEncoder):
 def index():
     return '<title>Proyecto2</title><h2 style =" text-align: center; line-height: 200px; " > PROYECTO2 AYD1 Y2K </h2>'
 
+# -------------------------------------------------------------------------
+# FUNCION: agregar un nuevo usuario a la base de datos
+# ATRIBUTOS_JSON_ENTADA : nombre, apellido,dpi,email, contrasena, direccion
+# -------------------------------------------------------------------------  
 @app.route('/usuario', methods=['POST'])
 def insert():
-    contenido = request.json
-    nombre = contenido['nombre']
-    apellido = contenido['apellido']
-    dpi = contenido['dpi']
-    email = contenido['email']
-    contrasena = contenido['contrasena']
-    direccion = contenido['direccion']
- 
-    cursor = mysql.connection.cursor()
-    cursor.execute(''' INSERT INTO usuario(nombre,apellido,dpi,email,contrasena,direccion) VALUES(%s,%s,%s,%s,%s,%s) ''' , [nombre,apellido,dpi,email,contrasena,direccion])
-    cursor.connection.commit()
-    cursor.close()
-    return Response('usuario ingresado', status=200,mimetype= 'application/json')
+    try:    
+        contenido = request.json
+        nombre = contenido['nombre']
+        apellido = contenido['apellido']
+        dpi = contenido['dpi']
+        email = contenido['email']
+        contrasena = contenido['contrasena']
+        direccion = contenido['direccion']
+        cursor = mysql.connection.cursor()
+        cursor.execute(''' INSERT INTO usuario(nombre,apellido,dpi,email,contrasena,direccion) VALUES(%s,%s,%s,%s,%s,%s) ''' , [nombre,apellido,dpi,email,contrasena,direccion])
+        cursor.connection.commit()
+        cursor.close()
+        return Response('usuario ingresado exitosamentes', status=200,mimetype= 'application/text')
+    except Exception as e:
+        print(e)
+        return Response('error al ingresar usuario', status=400, mimetype='application/text')
 
+
+# -------------------------------------------------------------------------
+# FUNCION: eliminar todos los productos que tiene el carrito de un usuario
+# ATRIBUTOS_JSON_ENTADA : idusuario
+# -------------------------------------------------------------------------  
 @app.route('/carrito', methods=['DELETE'])
 def eliminarCarrito():
-    contenido = request.json
-    idusuario = contenido['idusuario']
-    cursor = mysql.connection.cursor()
-    cursor.execute(''' delete from carrito where usuario_idusuario = %s ''' , [idusuario])
-    cursor.connection.commit()
-    cursor.close()
-    return Response('carrito limpio' , status=200,mimetype= 'application/json')
+    try:
+        contenido = request.json
+        idusuario = contenido['idusuario']
+        cursor = mysql.connection.cursor()
+        cursor.execute(''' delete from carrito where usuario_idusuario = %s ''' , [idusuario])
+        cursor.connection.commit()
+        cursor.close()
+        return Response('carrito limpio' , status=200,mimetype= 'application/text')
+    except Exception as e:
+        print(e)
+        return Response('error al eliminar los productos del carrito', status=400, mimetype='application/text')
 
+
+# -------------------------------------------------------------------------
+# FUNCION: retornar todos los productos que tiene el carrito de un usuario
+# ATRIBUTOS_JSON_ENTADA : idusuario
+# -------------------------------------------------------------------------  
 @app.route('/carrito', methods=['POST'])
 def getcarrito():
     contenido = request.json
@@ -58,22 +80,23 @@ def getcarrito():
     rows = cursor.fetchall()
     cursor.connection.commit()
     cursor.close()
-    return Response(jsonify(rows) , status=200,mimetype= 'application/json')
+    resjson = json.dumps(rows, cls = Encoder)
+    return Response(resjson, status=200,mimetype= 'application/json')
 
+# -------------------------------------------------------------------------
+# FUNCION: retornar todos los usuarios registrados en el sistema
+# ------------------------------------------------------------------------- 
 @app.route('/usuario')
 def users():
     cur = mysql.connection.cursor()
     cur.execute('''SELECT * FROM usuario''')
     rows = cur.fetchall()
-    return Response(jsonify(rows) , status=200,mimetype= 'application/json')
+    resjson = json.dumps(rows, cls = Encoder)
+    return Response(resjson , status=200,mimetype= 'application/json')
 
-@app.route('/numpageproducto')
-def getnumpage():
-    cur = mysql.connection.cursor()
-    cur.execute('''select (count(*) div 10)+1  from producto''')
-    rows = cur.fetchall()
-    return Response(jsonify(rows[0]) , status=200,mimetype= 'application/json')
-
+# -------------------------------------------------------------------------
+# FUNCION: retornar todos los productos registrados en el sistema
+# ------------------------------------------------------------------------- 
 @app.route('/producto')
 def gettodosProductos():
     cur = mysql.connection.cursor()
@@ -81,6 +104,43 @@ def gettodosProductos():
     rows = cur.fetchall()
     resjson = json.dumps(rows, cls = Encoder)
     return Response(resjson, status=200,mimetype= 'application/json')
+
+# -------------------------------------------------------------------------
+# FUNCION: llenar el detalle de la factura, primero ingresar los productos 
+#          que tiene el carrito en la tabla detallefactura, elimina los 
+#          productos del carrito y actualiza el stock del producto
+# ATRIBUTOS_JSON_ENTADA : idusuario , idfactura
+# ------------------------------------------------------------------------- 
+@app.route('/detalleFactura',methods=['POST'])
+def setdetalleFactura():
+    contenido = request.json
+    idusuario = contenido['idusuario']
+    idfactura = contenido['idfactura']
+    # 1. traer los productos del carrito del usuario
+    cur = mysql.connection.cursor()
+    cur.execute(''' select producto_idproducto, cantidad from carrito where usuario_idusuario = %s ''' , [idusuario])
+    rows = cur.fetchall()
+    # 2. iterar cada uno de los elementos y pasarlos a detallefactura, tambien actualizar el stock por cada iteracion
+    for element in rows:
+        print(element[0]) # producto
+        print(element[1]) # cantidad
+        cur.execute(''' insert into detalleFactura (factura_idfactura, producto_idproducto, cantidad) values (%s,%s,%s) ''' , [str(idfactura),str(element[0]),str(element[1])])
+        cur.execute(''' update producto set stock = stock - %s where idproducto = %s ''', [str(element[1]),str(element[0])])
+        cur.connection.commit()
+    # 3. eliminar todos los productos que tenia en el carrito
+    cur.execute(''' delete from carrito where usuario_idusuario = %s ''' , [idusuario])
+    cur.connection.commit()
+    cur.close()
+    return Response('Realizado con exito', status=200,mimetype= 'application/text')
+
+
+
+@app.route('/numpageproducto')
+def getnumpage():
+    cur = mysql.connection.cursor()
+    cur.execute('''select (count(*) div 10)+1  from producto''')
+    rows = cur.fetchall()
+    return Response(jsonify(rows[0]) , status=200,mimetype= 'application/json')
 
 @app.route('/listaproductoGeneral',methods=['POST'])
 def getproductos():
@@ -112,28 +172,11 @@ def getproductos2():
     rows = cur.fetchall()
     return Response(jsonify(rows) , status=200,mimetype= 'application/json')
 
-@app.route('/detalleFactura',methods=['POST'])
-def setdetalleFactura():
-    contenido = request.json
-    idusuario = contenido['idusuario']
-    idfactura = contenido['idfactura']
-    # 1. traer los productos del carrito del usuario
-    cur = mysql.connection.cursor()
-    cur.execute(''' select producto_idproducto, cantidad from carrito where usuario_idusuario = %s ''' , [idusuario])
-    rows = cur.fetchall()
-    print(rows)
-    # 2. iterar cada uno de los elementos y pasarlos a detallefactura
-    for element in rows:
-        print(element[0]) # producto
-        print(element[1]) # cantidad
-        cur.execute(''' insert into detalleFactura (factura_idfactura, producto_idproducto, cantidad) values (%s,%s,%s) ''' , [str(idfactura),str(element[0]),str(element[1])])
-        cur.execute(''' update producto set stock = stock - %s where idproducto = %s ''', [str(element[1]),str(element[0])])
-        cur.connection.commit()
-    # 3. eliminar todos los productos que tenia en el carrito
-    cur.execute(''' delete from carrito where usuario_idusuario = %s ''' , [idusuario])
-    cur.connection.commit()
-    cur.close()
-    return Response('{"msg":"Realizado con exito"}', status=200,mimetype= 'application/json')
+
+#---------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
+#---------------------------------------------------------------------------------------------------------------------------
+
 
 # Insertar un producto
 @app.route('/producto/nuevo', methods=['POST'])
