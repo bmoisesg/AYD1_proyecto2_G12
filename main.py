@@ -78,12 +78,36 @@ def getnumpage():
     return jsonify(rows[0])
 
 
-@app.route('/producto',methods=['POST'])
+@app.route('/listaproductoGeneral',methods=['POST'])
 def getproductos():
+    contenido = request.json
+    num = contenido['num']
     cur = mysql.connection.cursor()
-    cur.execute('''select (count(*) div 10)+1  from producto''')
+    bandera= 10* (int(num) -1)
+    cur.execute("select * from producto limit "+str(bandera)+" , 10 ")
+    rows = cur.fetchall()
+    return jsonify(rows)
+
+@app.route('/numpageproductocategoria', methods=['POST'])
+def getnumpage2():
+    contenido = request.json
+    idcategoria = contenido['idcategoria']
+    cur = mysql.connection.cursor()
+    cur.execute('''select (count(*) div 10)+1  from producto where categoria_idcategoria= %s ''', str(idcategoria))
     rows = cur.fetchall()
     return jsonify(rows[0])
+
+
+@app.route('/listaproductoGeneralcategoria',methods=['POST'])
+def getproductos2():
+    contenido = request.json
+    num = contenido['num']
+    idcategoria = contenido['idcategoria']
+    cur = mysql.connection.cursor()
+    limit1= 10*(int(num)-1)
+    cur.execute("select * from producto where categoria_idcategoria = "+str(idcategoria)+" limit "+ str(limit1)+", 10 ")
+    rows = cur.fetchall()
+    return jsonify(rows)
 
 # Insertar un producto
 @app.route('/producto/1', methods=['POST'])
