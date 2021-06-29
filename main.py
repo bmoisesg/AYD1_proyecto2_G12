@@ -1,10 +1,12 @@
 from flask import Flask, json, request, jsonify
 from flask.wrappers import Response
 from flask_mysqldb import MySQL
+from flask_cors import CORS
 
 import decimal
 
 app = Flask(__name__)
+CORS(app)
 
 app.config['MYSQL_HOST'] = 'mysql-db.crolp0fl8ogz.us-east-2.rds.amazonaws.com'
 app.config['MYSQL_USER'] = 'admin'
