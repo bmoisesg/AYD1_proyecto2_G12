@@ -79,7 +79,8 @@ def gettodosProductos():
     cur = mysql.connection.cursor()
     cur.execute('''select *  from producto''')
     rows = cur.fetchall()
-    return Response(jsonify(rows) , status=200,mimetype= 'application/json')
+    resjson = json.dumps(rows, cls = Encoder)
+    return Response(resjson, status=200,mimetype= 'application/json')
 
 @app.route('/listaproductoGeneral',methods=['POST'])
 def getproductos():
