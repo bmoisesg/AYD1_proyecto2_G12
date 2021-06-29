@@ -134,45 +134,6 @@ def setdetalleFactura():
     return Response('Realizado con exito', status=200,mimetype= 'application/text')
 
 
-
-@app.route('/numpageproducto')
-def getnumpage():
-    cur = mysql.connection.cursor()
-    cur.execute('''select (count(*) div 10)+1  from producto''')
-    rows = cur.fetchall()
-    return Response(jsonify(rows[0]) , status=200,mimetype= 'application/json')
-
-@app.route('/listaproductoGeneral',methods=['POST'])
-def getproductos():
-    contenido = request.json
-    num = contenido['num']
-    cur = mysql.connection.cursor()
-    bandera= 10* (int(num) -1)
-    cur.execute("select * from producto limit "+str(bandera)+" , 10 ")
-    rows = cur.fetchall()
-    return Response(jsonify(rows) , status=200,mimetype= 'application/json')
-
-@app.route('/numpageproductocategoria', methods=['POST'])
-def getnumpage2():
-    contenido = request.json
-    idcategoria = contenido['idcategoria']
-    cur = mysql.connection.cursor()
-    cur.execute('''select (count(*) div 10)+1  from producto where categoria_idcategoria= %s ''', str(idcategoria))
-    rows = cur.fetchall()
-    return Response(jsonify(rows[0]) , status=200,mimetype= 'application/json')
-
-@app.route('/listaproductoGeneralcategoria',methods=['POST'])
-def getproductos2():
-    contenido = request.json
-    num = contenido['num']
-    idcategoria = contenido['idcategoria']
-    cur = mysql.connection.cursor()
-    limit1= 10*(int(num)-1)
-    cur.execute("select * from producto where categoria_idcategoria = "+str(idcategoria)+" limit "+ str(limit1)+", 10 ")
-    rows = cur.fetchall()
-    return Response(jsonify(rows) , status=200,mimetype= 'application/json')
-
-
 #---------------------------------------------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------------------------------------------
