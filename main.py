@@ -133,6 +133,25 @@ def setdetalleFactura():
     cur.close()
     return Response('Realizado con exito', status=200,mimetype= 'application/text')
 
+# -------------------------------------------------------------------------
+# FUNCION: retornar toda la informacion de una factura con solo enviar el id
+# ------------------------------------------------------------------------- 
+@app.route('/infofactura',methods=['POST'])
+def getInfoFactura():
+    contenido = request.json
+    idfactura = contenido['idfactura']
+    cur = mysql.connection.cursor()
+    cur.execute('''select producto_idproducto as idproducto, cantidad from detalleFactura where factura_idfactura = %s ''',[idfactura])
+    rows = cur.fetchall()
+    retornarjson=[]
+    retornarjson.append(rows)
+    cur.execute('''select * from factura where idfactura = %s ''',[idfactura])
+    rows = cur.fetchall()
+    retornarjson.append(rows)
+    resjson = json.dumps(retornarjson, cls = Encoder)
+
+    return Response(resjson, status=200,mimetype= 'application/json')
+
 
 #---------------------------------------------------------------------------------------------------------------------------
 #---------------------------------------------------------------------------------------------------------------------------
