@@ -105,6 +105,18 @@ def configure_routes(app):
         return Response(resjson, status=200,mimetype= 'application/json')
 
     # -------------------------------------------------------------------------
+    # FUNCION: eliminar un usuario segun su email
+    # ------------------------------------------------------------------------- 
+    @app.route('/usuario', methods=['DELETE'])
+    def eliminarUsuario():
+        cur = mysql.connection.cursor()
+        contenido = request.json
+        email = contenido['email']
+        cur.execute('''delete from usuario where email = %s''',[email])
+        cur.connection.commit()
+        return Response("usuario eliminado", status=200,mimetype= 'application/text')
+
+    # -------------------------------------------------------------------------
     # FUNCION: llenar el detalle de la factura, primero ingresar los productos 
     #          que tiene el carrito en la tabla detallefactura, elimina los 
     #          productos del carrito y actualiza el stock del producto

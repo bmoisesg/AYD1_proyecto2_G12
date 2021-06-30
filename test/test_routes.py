@@ -1,12 +1,14 @@
 from flask import Flask
+from flask.globals import request
 import json
 
 from handlers.main import configure_routes
 
+app = Flask(__name__)
+configure_routes(app)
+client = app.test_client()
+
 def test_getProductById_route():
-    app = Flask(__name__)
-    configure_routes(app)
-    client = app.test_client()
     url = '/producto'
 
     request_headers = {
@@ -20,9 +22,6 @@ def test_getProductById_route():
     assert response.status_code == 200
 
 def test_addProductShoppingCart_route():
-    app = Flask(__name__)
-    configure_routes(app)
-    client = app.test_client()
     url = '/carrito/nuevo'
 
     request_headers = {
@@ -37,9 +36,6 @@ def test_addProductShoppingCart_route():
     assert response.status_code == 200
 
 def test_updateProductQuantity_route():
-    app = Flask(__name__)
-    configure_routes(app)
-    client = app.test_client()
     url = '/carrito'
 
     request_headers = {
@@ -55,9 +51,6 @@ def test_updateProductQuantity_route():
     assert response.status_code == 200
 
 def test_delProductFromShoppingCar_route():
-    app = Flask(__name__)
-    configure_routes(app)
-    client = app.test_client()
     url = '/carrito/producto'
 
     request_headers = {
@@ -72,18 +65,12 @@ def test_delProductFromShoppingCar_route():
     assert response.status_code == 200
 
 def test_getPaymentMethod_route():
-    app = Flask(__name__)
-    configure_routes(app)
-    client = app.test_client()
     url = '/metodoPago'
 
     response = client.get(url)
     assert response.status_code == 200
 
 def test_userLogin_route():
-    app = Flask(__name__)
-    configure_routes(app)
-    client = app.test_client()
     url = '/usuario/sesion'
 
     request_headers = {
@@ -98,9 +85,6 @@ def test_userLogin_route():
     assert response.status_code == 200
 
 def test_setBillInformation_route():
-    app = Flask(__name__)
-    configure_routes(app)
-    client = app.test_client()
     url = '/factura'
 
     request_headers = {
@@ -118,9 +102,6 @@ def test_setBillInformation_route():
     assert response.status_code == 200
 
 def test_setPaymentDetail_route():
-    app = Flask(__name__)
-    configure_routes(app)
-    client = app.test_client()
     url = '/factura/detallePago'
 
     request_headers = {
@@ -136,3 +117,54 @@ def test_setPaymentDetail_route():
     assert response.status_code == 200
     
 
+def test_ingresarUsuario():
+    info= {
+	        "nombre":"nombrePrueba",
+	        "apellido":"apellidoPrueba",
+	        "dpi":"dpiPrueba",
+	        "email":"correoPrueba",
+	        "contrasena":"contraPrueba",
+	        "direccion":"direccionPrueba"
+    }
+    response = client.post("/usuario", data=json.dumps(info), headers={'Content-Type': 'application/json'})
+    assert response.status_code == 200
+    if response.status_code == 200:
+        objeto={
+            "email": "correoPrueba"
+        }
+        response = client.delete("/usuario", data=json.dumps(objeto), headers={'Content-Type': 'application/json'})
+
+def test_eliminarcarrito():
+    info= {
+	        "idusuario":"0"
+    }
+    response = client.delete("/carrito", data=json.dumps(info), headers={'Content-Type': 'application/json'})
+    assert response.data == b"carrito limpio"
+
+def test_traerElementosCarrito():
+    info= { "idusuario":"0" }
+    response = client.post("/carrito", data=json.dumps(info), headers={'Content-Type': 'application/json'})
+    assert response.status_code == 200
+
+def test_getusuarios():
+    response = client.get("/usuario")
+    assert response.status_code == 200
+
+def test_getproductos():
+    response = client.get("/producto")
+    assert response.status_code == 200
+
+def test_eliminarUsuario():
+    info={ "email":"test" } 
+    response = client.delete("/usuario", data=json.dumps(info), headers={'Content-Type': 'application/json'})
+    assert response.status_code == 200
+
+def test_retornardetallefactura():
+    info={ "idfactura":"0" } 
+    response = client.post("/infofactura", data=json.dumps(info), headers={'Content-Type': 'application/json'})
+    assert response.status_code == 200
+
+def test_ingresardetallefactura():
+    info={ "idfactura":"0" , "idusuario":"0"} 
+    response = client.post("/detalleFactura", data=json.dumps(info), headers={'Content-Type': 'application/json'})
+    assert response.status_code == 200
