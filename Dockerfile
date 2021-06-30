@@ -1,6 +1,4 @@
 FROM python
-RUN pip install Flask
-RUN pip install flask-mysqldb
-RUN pip install -U flask-cors
+RUN pip install -r requirements.txt
 COPY . .
-CMD ["python3", "/main.py"] 
+CMD ["python3", "/app.py"] 
