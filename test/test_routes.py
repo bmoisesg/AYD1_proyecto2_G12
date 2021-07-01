@@ -132,7 +132,7 @@ def test_ingresarUsuario():
         objeto={
             "email": "correoPrueba"
         }
-        response = client.post("/usuario", data=json.dumps(objeto), headers={'Content-Type': 'application/json'})
+        response = client.delete("/usuario", data=json.dumps(objeto), headers={'Content-Type': 'application/json'})
 
 def test_eliminarcarrito():
     info= {
