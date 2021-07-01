@@ -16,7 +16,7 @@ def test_getProductById_route():
     }
 
     request_data = {
-        "id_producto": 112
+        "id_producto": 49
     }
     response = client.post(url, data=json.dumps(request_data), headers=request_headers)
     assert response.status_code == 200
@@ -30,7 +30,7 @@ def test_addProductShoppingCart_route():
 
     request_data = {
         'id_usuario': 3,
-        'id_producto': 112
+        'id_producto': 49
     }
     response = client.post(url, data=json.dumps(request_data), headers=request_headers)
     assert response.status_code == 200
@@ -44,7 +44,7 @@ def test_updateProductQuantity_route():
 
     request_data = {
         'id_usuario': 3,
-        'id_producto': 112,
+        'id_producto': 49,
         'cantidad': 8
     }
     response = client.patch(url, data=json.dumps(request_data), headers=request_headers)
@@ -59,9 +59,9 @@ def test_delProductFromShoppingCar_route():
 
     request_data = {
         'id_usuario': 3,
-        'id_producto': 112
+        'id_producto': 49
     }
-    response = client.delete(url, data=json.dumps(request_data), headers=request_headers)
+    response = client.post(url, data=json.dumps(request_data), headers=request_headers)
     assert response.status_code == 200
 
 def test_getPaymentMethod_route():
@@ -132,7 +132,7 @@ def test_ingresarUsuario():
         objeto={
             "email": "correoPrueba"
         }
-        response = client.delete("/usuario", data=json.dumps(objeto), headers={'Content-Type': 'application/json'})
+        response = client.post("/usuario", data=json.dumps(objeto), headers={'Content-Type': 'application/json'})
 
 def test_eliminarcarrito():
     info= {
