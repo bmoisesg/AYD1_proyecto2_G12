@@ -256,7 +256,7 @@ def configure_routes(app):
             cursor.close()
 
     # Eliminar producto del carrito del usuario
-    @app.route('/carrito/producto', methods=['DELETE'])
+    @app.route('/carrito/producto', methods=['POST'])
     def delProductFromShoppingCar():
         try:
             cursor = mysql.connection.cursor()
