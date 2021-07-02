@@ -1,5 +1,6 @@
 from flask import Flask
 from flask.globals import request
+from pathlib import Path
 import json
 
 from handlers.main import configure_routes
@@ -115,7 +116,26 @@ def test_setPaymentDetail_route():
     }
     response = client.post(url, data=json.dumps(request_data), headers=request_headers)
     assert response.status_code == 200
-    
+
+def test_sendEmail():
+    url = '/email'
+
+    request_headers = {
+        'Content-Type': 'application/json'
+    }
+
+    # Obtener pdf base64
+    p = Path(__file__).with_name('test_b64.txt')
+    with p.open('r') as fp:
+        b64 = fp.read()  
+
+    request_data = {
+        'email': 'novatech.webstore@gmail.com',
+	    'factura_b64': b64
+    }
+
+    response = client.post(url, data=json.dumps(request_data), headers=request_headers)
+    assert response.status_code == 200
 
 def test_ingresarUsuario():
     info= {

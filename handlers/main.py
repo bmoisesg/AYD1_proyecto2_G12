@@ -3,8 +3,10 @@ from flask import Flask, json, request
 from flask.wrappers import Response
 from flask_mysqldb import MySQL
 from flask_cors import CORS
+from flask_mail import Mail, Message
 
 import decimal
+import base64
 
 class Encoder(json.JSONEncoder):
     def default(self, obj):
@@ -18,6 +20,15 @@ def configure_routes(app):
     app.config['MYSQL_USER'] = 'admin'
     app.config['MYSQL_PASSWORD'] = 'adminy2k'
     app.config['MYSQL_DB'] = 'mydb'
+
+    app.config['MAIL_SERVER']='smtp.gmail.com'
+    app.config['MAIL_PORT'] = 465
+    app.config['MAIL_USERNAME'] = 'novatech.webstore@gmail.com'
+    app.config['MAIL_PASSWORD'] = 'AYD1test'
+    app.config['MAIL_USE_TLS'] = False
+    app.config['MAIL_USE_SSL'] = True
+
+    mail = Mail(app)
 
     @app.route('/', methods=['GET'])
     def index():
@@ -377,3 +388,27 @@ def configure_routes(app):
             return Response('{"msg":"Error al insertar información de pago."}', status=400, mimetype='application/json')
         finally:
             cursor.close()
+    
+    #Ruta test de correos electronicos
+    @app.route('/email', methods=['POST'])
+    def sendEmail():
+        try:
+            email = request.json['email']
+            billb64 = request.json['factura_b64']
+
+            with open('bills/Factura.pdf', 'wb') as f:
+                f.write(base64.b64decode(billb64))
+
+            msg = Message('Factura', sender = 'novatech.webstore@gmail.com', recipients = [email])
+            msg.body = "Buen día, se adjunta la factura correspondiente a la compara realizada. Gracias por su preferencia."
+            
+            with app.open_resource("bills/Factura.pdf") as fp:  
+                msg.attach("Factura.pdf", "application/pdf", fp.read())  
+            mail.send(msg)
+            return Response('{"msg":"Factura enviada exitosamente."}', status=200, mimetype='application/json')
+        except Exception as e:
+            print('[ERROR]:',e)
+            return Response('{"msg":"Error al enviar correo electronico."}', status=400, mimetype='application/json')
+
+
+     
