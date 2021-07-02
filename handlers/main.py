@@ -21,7 +21,7 @@ def configure_routes(app):
 
     @app.route('/', methods=['GET'])
     def index():
-        return '<title>Proyecto2</title><h2 style =" text-align: center; line-height: 200px; " > PROYECTO2 AYD1 Y2K </h2>'
+        return '<title>Proyecto2</title><h2 style =" text-align: center; line-height: 200px; " > PROYECTO2 AYD1 Y2K </h2> <br><h4>vamos  dormir</h4>'
 
     # -------------------------------------------------------------------------
     # FUNCION: agregar un nuevo usuario a la base de datos
