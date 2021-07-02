@@ -2,3 +2,4 @@ flask
 pytest
 flask-cors
 flask-mysqldb
+flask-mail
