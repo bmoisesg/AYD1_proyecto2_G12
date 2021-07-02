@@ -390,25 +390,25 @@ def configure_routes(app):
             cursor.close()
     
     #Ruta test de correos electronicos
-    @app.route('/email', methods=['GET'])
-    def testEmail():
-        msg = Message('Hello', sender = 'novatech.webstore@gmail.com', recipients = ['byron.alvamora@gmail.com'])
-        msg.body = "Hola desde Flask..."
-        mail.send(msg)
-        return "Sent", 200
-    
-    #Ruta test de correos electronicos
     @app.route('/email', methods=['POST'])
     def sendEmail():
-        email = request.json['email']
-        billb64 = request.json['factura_b64']
+        try:
+            email = request.json['email']
+            billb64 = request.json['factura_b64']
 
-        with open('bills/temp.pdf', 'wb') as f:
-            f.write(base64.b64decode(billb64))
+            with open('bills/Factura.pdf', 'wb') as f:
+                f.write(base64.b64decode(billb64))
 
-        """ msg = Message('Factura', sender = 'novatech.webstore@gmail.com', recipients = [email])
-        msg.body = "Hola desde Flask..."
-        mail.send(msg) """
-        return "Sent", 200
+            msg = Message('Factura', sender = 'novatech.webstore@gmail.com', recipients = [email])
+            msg.body = "Buen día, se adjunta la factura correspondiente a la compara realizada. Gracias por su preferencia."
+            
+            with app.open_resource("bills/Factura.pdf") as fp:  
+                msg.attach("Factura.pdf", "application/pdf", fp.read())  
+            mail.send(msg)
+            return Response('{"msg":"Factura enviada exitosamente."}', status=200, mimetype='application/json')
+        except Exception as e:
+            print('[ERROR]:',e)
+            return Response('{"msg":"Error al enviar correo electronico."}', status=400, mimetype='application/json')
+
 
      
