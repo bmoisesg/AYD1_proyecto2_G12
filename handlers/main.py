@@ -3,8 +3,10 @@ from flask import Flask, json, request
 from flask.wrappers import Response
 from flask_mysqldb import MySQL
 from flask_cors import CORS
+from flask_mail import Mail, Message
 
 import decimal
+import base64
 
 class Encoder(json.JSONEncoder):
     def default(self, obj):
@@ -18,6 +20,15 @@ def configure_routes(app):
     app.config['MYSQL_USER'] = 'admin'
     app.config['MYSQL_PASSWORD'] = 'adminy2k'
     app.config['MYSQL_DB'] = 'mydb'
+
+    app.config['MAIL_SERVER']='smtp.gmail.com'
+    app.config['MAIL_PORT'] = 465
+    app.config['MAIL_USERNAME'] = 'novatech.webstore@gmail.com'
+    app.config['MAIL_PASSWORD'] = 'AYD1test'
+    app.config['MAIL_USE_TLS'] = False
+    app.config['MAIL_USE_SSL'] = True
+
+    mail = Mail(app)
 
     @app.route('/', methods=['GET'])
     def index():
@@ -377,3 +388,27 @@ def configure_routes(app):
             return Response('{"msg":"Error al insertar información de pago."}', status=400, mimetype='application/json')
         finally:
             cursor.close()
+    
+    #Ruta test de correos electronicos
+    @app.route('/email', methods=['GET'])
+    def testEmail():
+        msg = Message('Hello', sender = 'novatech.webstore@gmail.com', recipients = ['byron.alvamora@gmail.com'])
+        msg.body = "Hola desde Flask..."
+        mail.send(msg)
+        return "Sent", 200
+    
+    #Ruta test de correos electronicos
+    @app.route('/email', methods=['POST'])
+    def sendEmail():
+        email = request.json['email']
+        billb64 = request.json['factura_b64']
+
+        with open('bills/temp.pdf', 'wb') as f:
+            f.write(base64.b64decode(billb64))
+
+        """ msg = Message('Factura', sender = 'novatech.webstore@gmail.com', recipients = [email])
+        msg.body = "Hola desde Flask..."
+        mail.send(msg) """
+        return "Sent", 200
+
+     
