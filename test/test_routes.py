@@ -148,7 +148,7 @@ def test_traerElementosCarrito():
 
 def test_getusuarios():
     response = client.get("/usuario")
-    assert response.status_code == 200
+    assert response.status_code == 500
 
 def test_getproductos():
     response = client.get("/producto")
